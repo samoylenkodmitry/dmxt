@@ -1,0 +1,23 @@
+[Unit]
+Description=DMXT Tailnet control panel
+After=network-online.target orangepi-hid.service tailscaled.service dmxt-media.service dmxt-fast.service
+Wants=network-online.target dmxt-media.service dmxt-fast.service
+Requires=orangepi-hid.service
+
+[Service]
+Type=simple
+User=s
+Group=input
+SupplementaryGroups=video
+Environment=DMXT_VIDEO_SIZE=1280x720
+Environment=DMXT_VIDEO_FPS=60
+Environment=DMXT_FAST_URL=http://127.0.0.1:8024
+ExecStart=/usr/bin/python3 /usr/local/lib/orangepi-kvm/remote_panel.py
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

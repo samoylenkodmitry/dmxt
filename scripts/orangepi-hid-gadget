@@ -1,0 +1,58 @@
+#!/bin/sh
+set -eu
+
+gadget=/sys/kernel/config/usb_gadget/orangepi_hid
+udc=$(ls /sys/class/udc | head -n 1)
+
+[ -r /etc/default/dmxt ] && . /etc/default/dmxt
+: "${DMXT_VENDOR_ID:=0x1d6b}"
+: "${DMXT_PRODUCT_ID:=0x0104}"
+
+modprobe libcomposite
+mountpoint -q /sys/kernel/config || mount -t configfs none /sys/kernel/config
+
+if [ -e "$gadget/UDC" ] && [ -n "$(cat "$gadget/UDC" 2>/dev/null || true)" ]; then
+    chgrp input /dev/hidg0 /dev/hidg1 /dev/hidg2
+    chmod 660 /dev/hidg0 /dev/hidg1 /dev/hidg2
+    exit 0
+fi
+
+mkdir -p "$gadget"
+printf '%s' "$DMXT_VENDOR_ID" > "$gadget/idVendor"
+printf '%s' "$DMXT_PRODUCT_ID" > "$gadget/idProduct"
+printf '0x0100' > "$gadget/bcdDevice"
+printf '0x0200' > "$gadget/bcdUSB"
+
+mkdir -p "$gadget/strings/0x409"
+printf 'DMXT' > "$gadget/strings/0x409/manufacturer"
+printf 'DMXT Keyboard and Mouse' > "$gadget/strings/0x409/product"
+printf 'dmxt-hid' > "$gadget/strings/0x409/serialnumber"
+
+mkdir -p "$gadget/configs/c.1/strings/0x409"
+printf 'DMXT Keyboard and Mouse' > "$gadget/configs/c.1/strings/0x409/configuration"
+printf 250 > "$gadget/configs/c.1/MaxPower"
+
+mkdir -p "$gadget/functions/hid.usb0"
+printf 1 > "$gadget/functions/hid.usb0/protocol"
+printf 1 > "$gadget/functions/hid.usb0/subclass"
+printf 8 > "$gadget/functions/hid.usb0/report_length"
+printf '\005\001\011\006\241\001\005\007\031\340\051\347\025\000\045\001\165\001\225\010\201\002\225\001\165\010\201\003\225\005\165\001\005\010\031\001\051\005\221\002\225\001\165\003\221\003\225\006\165\010\025\000\046\201\000\005\007\031\000\052\201\000\201\000\300' > "$gadget/functions/hid.usb0/report_desc"
+
+mkdir -p "$gadget/functions/hid.usb1"
+printf 2 > "$gadget/functions/hid.usb1/protocol"
+printf 1 > "$gadget/functions/hid.usb1/subclass"
+printf 4 > "$gadget/functions/hid.usb1/report_length"
+printf '\005\001\011\002\241\001\011\001\241\000\005\011\031\001\051\003\025\000\045\001\225\003\165\001\201\002\225\001\165\005\201\003\005\001\011\060\011\061\011\070\025\201\045\177\165\010\225\003\201\006\300\300' > "$gadget/functions/hid.usb1/report_desc"
+
+mkdir -p "$gadget/functions/hid.usb2"
+printf 2 > "$gadget/functions/hid.usb2/protocol"
+printf 1 > "$gadget/functions/hid.usb2/subclass"
+printf 5 > "$gadget/functions/hid.usb2/report_length"
+printf '\005\001\011\002\241\001\011\001\241\000\005\011\031\001\051\003\025\000\045\001\225\003\165\001\201\002\225\001\165\005\201\003\005\001\011\060\011\061\025\000\046\377\177\165\020\225\002\201\002\300\300' > "$gadget/functions/hid.usb2/report_desc"
+
+ln -sf "$gadget/functions/hid.usb0" "$gadget/configs/c.1/hid.usb0"
+ln -sf "$gadget/functions/hid.usb1" "$gadget/configs/c.1/hid.usb1"
+ln -sf "$gadget/functions/hid.usb2" "$gadget/configs/c.1/hid.usb2"
+printf '%s' "$udc" > "$gadget/UDC"
+chgrp input /dev/hidg0 /dev/hidg1 /dev/hidg2
+chmod 660 /dev/hidg0 /dev/hidg1 /dev/hidg2

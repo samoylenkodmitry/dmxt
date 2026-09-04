@@ -1,0 +1,18 @@
+[Unit]
+Description=DMXT low-latency audio service
+After=network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=s
+Group=audio
+ExecStart=/usr/local/bin/go2rtc -config /etc/dmxt/go2rtc.yaml
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,22 @@
+[Unit]
+Description=DMXT native low-latency transport
+After=network-online.target orangepi-hid.service
+Wants=network-online.target
+Requires=orangepi-hid.service
+
+[Service]
+Type=simple
+User=s
+Group=input
+SupplementaryGroups=video
+Environment=DMXT_VIDEO_SIZE=1280x720
+Environment=DMXT_VIDEO_FPS=60
+ExecStart=/usr/local/bin/dmxt-fast
+Restart=always
+RestartSec=1
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

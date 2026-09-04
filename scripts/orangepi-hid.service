@@ -1,0 +1,11 @@
+[Unit]
+Description=DMXT USB HID keyboard and mouse
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/orangepi-hid-gadget
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

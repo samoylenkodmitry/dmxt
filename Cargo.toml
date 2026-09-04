@@ -1,0 +1,22 @@
+[package]
+name = "dmxt-fast"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+axum = { version = "0.7.9", features = ["ws"] }
+futures-util = "0.3.31"
+memchr = "2.7.4"
+serde = { version = "1.0.217", features = ["derive"] }
+tokio = { version = "1.43.0", features = ["fs", "io-util", "macros", "net", "process", "rt-multi-thread", "sync", "time"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+home = "=0.5.5"
+v4l = "0.14.0"
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+panic = "abort"
+strip = true
